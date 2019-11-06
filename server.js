@@ -32,12 +32,12 @@ function aboutUsHandler(request,response) {
 
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
+app.get('/events', handleEvent);
 
 //Route Handlers
 function handleLocation(request,response) {
 
   const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${request.query.data}&key=${process.env.GEOCODE_API_KEY}`;
-
   superagent.get(url)
     .then( data=> {
       const geoData = data.body;
@@ -48,12 +48,33 @@ function handleLocation(request,response) {
       console.error(error);
       response.status(500).send('Status: 500. Sorry, there is something not quite right');
     })
-
-
 }
 
-function handleWeather(request, response) {
+function handleEvent(request, reponse) {
+  const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.address=${data.formatted_query}`;
+  const data = request.query.data;
+  return superagent.get('`https://www.eventbriteapi.com/v3/events/search/?location.address=bend&token=${process.env.EVENTBRITE_API_KEY}`')
+    .then(result => {
+      const eventInfo = result.body.events.map( eventInfo => {
+        return new Events(eventInfo);
+      });
+      response.send(eventInfo);
+    })
+    .catch(error => errorMessage(error, response));
+};
 
+function handleWeather(request, response) {
+  // try{
+  //   const darkskyData = require('./data/darksky.json');
+  //   const weatherSummaries = [];
+  //   darkskyData.daily.data.forEach( day => {
+  //     weatherSummaries.push(new Weather(day));
+  //   });
+  //   response.status(200).json(weatherSummaries);
+  // }
+  // catch {
+  //   errorHandler('so sorry, that is wrong')
+  // }
   const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
   superagent.get(url)
     .then( data => {
@@ -86,6 +107,15 @@ function Location(city, geoData) {
   this.longitude = geoData.results[0].geometry.location.lng;
 }
 
+//sudo code taken from classmates to validate working server dishing data back. This is due to new api's not currently validating
+function Events(location) {
+  let time = Date.parse(location.start.local);
+  let newDate = new Date(time).toDateString();
+  this.event_date = newDate;
+  this.link = location.url;
+  this.name = location.name.text;
+  this.summary = location.summary;
+}
 
 
 function  notFoundHandler(request,response) {
@@ -95,8 +125,6 @@ function  notFoundHandler(request,response) {
 function errorHandler(error,request,response) {
   response.status(500).send(error);
 }
-
-
 
 // Make sure the server is listening for requests
 app.listen(PORT, () => console.log(`App is listening on ${PORT}`) );

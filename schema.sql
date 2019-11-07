@@ -1,4 +1,3 @@
-
 DROP TABLE IF EXISTS weathers;
 DROP TABLE IF EXISTS locations;
 

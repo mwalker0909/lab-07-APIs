@@ -37,7 +37,7 @@ function aboutUsHandler(request,response) {
 
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
-app.get('/events', handleEvent);
+// app.get('/events', handleEvent);
 
 //Route Handlers
 function handleLocation(request,response) {
@@ -47,7 +47,7 @@ function handleLocation(request,response) {
     .then( data=> {
       const geoData = data.body;
       const location = new Location(request.query.data, geoData);
-      if (!isLocationInDB(location)) saveLocation(location);
+      // if (!isLocationInDB(location)) saveLocation(location);
       response.send(location);
       response.send(data);
     })
@@ -57,18 +57,18 @@ function handleLocation(request,response) {
     })
 }
 
-function handleEvent(request, reponse) {
-  const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.address=${data.formatted_query}`;
-  const data = request.query.data;
-  return superagent.get('`https://www.eventbriteapi.com/v3/events/search/?location.address=bend&token=${process.env.EVENTBRITE_API_KEY}`')
-    .then(result => {
-      const eventInfo = result.body.events.map( eventInfo => {
-        return new Events(eventInfo);
-      });
-      response.send(eventInfo);
-    })
-    .catch(error => errorMessage(error, response));
-};
+// function handleEvent(request, reponse) {
+//   const url = `https://www.eventbriteapi.com/v3/events/search?token=${process.env.EVENTBRITE_API_KEY}&location.address=${data.formatted_query}`;
+//   const data = request.query.data;
+//   return superagent.get('`https://www.eventbriteapi.com/v3/events/search/?location.address=bend&token=${process.env.EVENTBRITE_API_KEY}`')
+//     .then(result => {
+//       const eventInfo = result.body.events.map( eventInfo => {
+//         return new Events(eventInfo);
+//       });
+//       response.send(eventInfo);
+//     })
+//     .catch(error => errorMessage(error, response));
+// };
 
 function handleWeather(request, response) {
 
@@ -104,14 +104,14 @@ function Location(city, geoData) {
 }
 
 //sudo code taken from classmates to validate working server dishing data back. This is due to new api's not currently validating
-function Events(location) {
-  let time = Date.parse(location.start.local);
-  let newDate = new Date(time).toDateString();
-  this.event_date = newDate;
-  this.link = location.url;
-  this.name = location.name.text;
-  this.summary = location.summary;
-}
+// function Events(location) {
+//   let time = Date.parse(location.start.local);
+//   let newDate = new Date(time).toDateString();
+//   this.event_date = newDate;
+//   this.link = location.url;
+//   this.name = location.name.text;
+//   this.summary = location.summary;
+// }
 
 app.use('*', notFoundHandler);
 app.use(errorHandler);

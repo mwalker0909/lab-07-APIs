@@ -2,6 +2,7 @@
 
 // Load Environment Variables from the .env file
 require('dotenv').config();
+const pg = require('pg');
 
 // Application Dependencies
 const express = require('express');
@@ -12,6 +13,10 @@ const superagent = require('superagent');
 const PORT = process.env.PORT;
 const app = express();
 app.use(cors());
+
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('error', err => console.error(err));
+
 
 app.get('/', (request,response) => {
   response.send('Home Page!');
@@ -42,7 +47,9 @@ function handleLocation(request,response) {
     .then( data=> {
       const geoData = data.body;
       const location = new Location(request.query.data, geoData);
+      if (!isLocationInDB(location)) saveLocation(location);
       response.send(location);
+      response.send(data);
     })
     .catch( error => {
       console.error(error);
@@ -64,17 +71,7 @@ function handleEvent(request, reponse) {
 };
 
 function handleWeather(request, response) {
-  // try{
-  //   const darkskyData = require('./data/darksky.json');
-  //   const weatherSummaries = [];
-  //   darkskyData.daily.data.forEach( day => {
-  //     weatherSummaries.push(new Weather(day));
-  //   });
-  //   response.status(200).json(weatherSummaries);
-  // }
-  // catch {
-  //   errorHandler('so sorry, that is wrong')
-  // }
+
   const url = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`;
   superagent.get(url)
     .then( data => {
@@ -89,16 +86,15 @@ function handleWeather(request, response) {
 
 }
 
+
+ // CONSTRUCTOR FUNCTION //
+
+
 function Weather(day) {
   this.forecast = day.summary;
   this.time = new Date(day.time * 1000).toString().slice(0,15);
 }
 
-
-app.use('*', notFoundHandler);
-app.use(errorHandler);
-
-// HELPER FUNCTIONS
 
 function Location(city, geoData) {
   this.search_query = city;
@@ -117,6 +113,8 @@ function Events(location) {
   this.summary = location.summary;
 }
 
+app.use('*', notFoundHandler);
+app.use(errorHandler);
 
 function  notFoundHandler(request,response) {
   response.status(404).send('huh?');
@@ -126,5 +124,10 @@ function errorHandler(error,request,response) {
   response.status(500).send(error);
 }
 
-// Make sure the server is listening for requests
-app.listen(PORT, () => console.log(`App is listening on ${PORT}`) );
+
+client.connect()
+  .then( ()=> {
+    app.listen(PORT, ()=> {
+      console.log('server and db are up, listening on port ', PORT);
+    });
+  });

@@ -24,6 +24,7 @@ app.get('/', (request,response) => {
 
 app.get('/bad', (request,response) => {
   throw new Error('poo');
+
 });
 
 // The callback can be a separate function. Really makes things readable

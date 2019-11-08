@@ -4,6 +4,11 @@
 require('dotenv').config();
 const pg = require('pg');
 
+// const { Client } = require('pg')
+const client = new pg.Client(process.env.DATABASE_URL);
+
+
+
 // Application Dependencies
 const express = require('express');
 const cors = require('cors');
@@ -14,8 +19,15 @@ const PORT = process.env.PORT;
 const app = express();
 app.use(cors());
 
-const client = new pg.Client(process.env.DATABASE_URL);
-client.on('error', err => console.error(err));
+// client.on('error', err => console.error(err));
+
+client.connect(err => {
+  if (err) {
+    console.error('connection error', err.stack)
+  } else {
+    console.log('connected')
+  }
+})
 
 
 app.get('/', (request,response) => {
@@ -126,9 +138,9 @@ function errorHandler(error,request,response) {
 }
 
 
-client.connect()
-  .then( ()=> {
+// client.connect()
+  // .then( ()=> {
     app.listen(PORT, ()=> {
       console.log('server and db are up, listening on port ', PORT);
     });
-  });
+  // });
